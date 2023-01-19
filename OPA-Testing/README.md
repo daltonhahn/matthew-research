@@ -1,3 +1,6 @@
+# Configure Minikube to create VirtualBox VM
+minikube config set driver virtualbox
+
 # Start Minikube
 minikube start
 
