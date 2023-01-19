@@ -20,3 +20,6 @@ minikube service fs1 --url
 # Use the URL exposed to curl the system
 curl \<URL from previous command\>  
 **Angle brackets \<\> are placeholders, do not include those in the command**
+
+# Cleanup
+minikube delete
