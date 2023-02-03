@@ -1,0 +1,3 @@
+Attempting to currently do:
+    Figure out a way to churn out a yaml template given a set of variables via bash script
+    
