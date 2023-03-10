@@ -1,37 +1,39 @@
-
+variables:
+  service-name: *name example
+  port: *port
 
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: # Modify this line with the service name
+  name: *name # Modify this line with the service name
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: # Modify this line with the service name
+  name: *name # Modify this line with the service name
   labels:
-    app: # Modify this line with the service name
-    service: # Modify this line with the service name
+    app: *name # Modify this line with the service name
+    service: *name # Modify this line with the service name
 spec:
   ports:
-  - port: # Modify this line with the listening port
+  - port: *port # Modify this line with the listening port
     name: http
   selector:
-    app: # Modify this line with the service name
+    app: *name # Modify this line with the service name
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: # Modify this line with the service name
+  name: *name # Modify this line with the service name
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: # Modify this line with the service name
+      app: *name # Modify this line with the service name
   template:
     metadata:
       labels:
-        app: # Modify this line with the service name
+        app: *name # Modify this line with the service name
     spec:
       terminationGracePeriodSeconds: 0
       serviceAccountName: # Modify this line with the service name
@@ -41,10 +43,10 @@ spec:
         imagePullPolicy: IfNotPresent
         env:
           - name: NAME
-            value: "" # Modify this line with the service name
+            value: "name" # Modify this line with the service name
           - name: LISTEN_ADDR
-            value: "0.0.0.0:" # Modify this line with the service name
+            value: "0.0.0.0:port" # Modify this line with the service name
           - name: MESSAGE
-            value: "" # Modify this line with the service name
+            value: "name" # Modify this line with the service name
           - name: UPSTREAM_URIS
-            value: "" # Modify this line with target service+portnum
+            value: "" # Modify this line with target service+portnum, which will need to be passed in from a python script

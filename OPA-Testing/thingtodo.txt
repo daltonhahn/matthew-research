@@ -1,3 +1,5 @@
 Attempting to currently do:
-    Figure out a way to churn out a yaml template given a set of variables via bash script
-    
+    Figure out a way to churn out a yaml template given a set of variables via bash/python/c/c++/anymeanspossible script
+    Use old graphing code to create a way to graph the system that we create via the yaml template
+        we're trying to figure out the connectiveness! 
+            given some amount of inputs about a system, create a visual component and fake service templates
