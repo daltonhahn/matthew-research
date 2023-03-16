@@ -1,4 +1,4 @@
-import functions.py as f
+import functions as f
 
 def main():
     num = int(input("How many nodes would you like created?: "))
