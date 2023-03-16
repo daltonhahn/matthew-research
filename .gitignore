@@ -1,0 +1,3 @@
+OPA-Testing/output_files/*
+.DS_Store
+OPA-Testing/__pycache__
