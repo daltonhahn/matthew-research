@@ -44,5 +44,7 @@ spec:
             value: "0.0.0.0:{port}" # Modify this line with the service name
           - name: MESSAGE
             value: "{name}" # Modify this line with the service name
+          - name: HTTP_CLIENT_APPEND_REQUEST
+            value: "false"
           - name: UPSTREAM_URIS
             value: "{upstreamuris}" # Modify this line with target service+portnum, which will need to be passed in from a python script

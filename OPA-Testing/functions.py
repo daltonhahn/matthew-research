@@ -7,7 +7,8 @@ import getopt
 import shutil
 
 def createRandomNodeGraph(numnodes:int):
-    G = nx.binomial_graph(numnodes, .05, directed=True)
+    #G = nx.binomial_graph(numnodes, .05, directed=True)
+    G = nx.fast_gnp_random_graph(numnodes, .05, directed=True)
     return G
 
 def printGraph(G, numnodes): #look into changing this into graphtools
@@ -88,6 +89,9 @@ def printGraph(G, numnodes): #look into changing this into graphtools
 def getjson(graph):
     data1 = nx.node_link_data(graph)
     s1 = json.dumps(data1) #this creates the JSON serial
+    #print(s1)
+    f = open("output_files/graph.json", "w")
+    f.write(s1)
     return s1
 
 class MultiThreadedNode:
@@ -96,25 +100,26 @@ class MultiThreadedNode:
         self.targets = []
         self.portnum = port
         self.servicename = servicename
-        self.message = f"Fake service {id}"
+        self.message = "Fake service %s" % idnum
         
     def addTarget(self, target):
         self.targets.append(target)
         return
     
     def __str__ (self):
-        return f"ID: {self.id}\nTargets: {self.targets}\nPort: {self.portnum}\nService Name: {self.servicename}\nMessage: {self.message}"
+        return ("ID: "+str(self.id) + "\nTargets: "+ ' '.join(str(self.targets)) + "\nPort: "+str(self.portnum)+"\nService Name: "+self.servicename+"\nMessage: "+self.message+"\n")
 
-def sortjson(jsondict:dict):
+def sortjson(jsondict):
         #parts of the json dict
         #directed - ignore
         #multigraph - ignore
         #nodes - the ids of the nodes + any additional descriptors. this is currently coded to only pay attention to the ids.
         #links - two parts - source and target. you'll look for the source to match with the node, then attach the node to the target.
+        jsondict = json.loads(jsondict)
         nodelist = []
         port = 80
         for i in jsondict["nodes"]:
-            node = MultiThreadedNode(i["id"], port, f"fs{i["id"]}")
+            node = MultiThreadedNode(i["id"], port, "fs%s" % i["id"])
             nodelist.append(node)
             port += 1
 
@@ -126,37 +131,27 @@ def sortjson(jsondict:dict):
 
 
 def uploadmicroserviceshells(nodelist):
-    os.system("minikube config set driver virtualbox")
-    os.system("minikube delete")
-    os.system("minikube start")
-    os.system("minikube kubectl -- get pods -A -o wide")
     for i in nodelist:
-    	os.system(f"cp fake-service-template.yaml fake-service-{i.id}.txt")#note that this command only works in linux - if used for windows, change the cp to copy
-    	listoflines = []
-        with open(f"fake-service-{i.id}.txt", "r") as fakeservicedoc:
-            line = fakeservicedoc.read()
-            while line != "":
-                listoflines.append[line]
-                line = fakeservicedoc.read()
+        print(i)
+    for i in nodelist:
+        os.system("cp fake-service-template.yaml output_files/fake-service-"+str(i.id)+".txt")#note that this command only works in linux - if used for windows, change the cp to copy
+        listoflines = []
+        with open("output_files/fake-service-%s.txt" % i.id, "r") as fakeservicedoc:
+            listoflines = fakeservicedoc.readlines()
+        modifiedLines = list()
         for j in listoflines:
-            for k in range(len(j)):
-                try:
-                    if j[k:k+6] == "{name}":
-                        j = j[0:k]
-                        j = j + f"{i.servicename}"                
-                    elif j[k:k+6] == "{port}":
-                        j = j[0:k]
-                        j = j + f"{i.portnum}"
-                    elif j[k:k+14] == "{upstreamuris}":
-                        fullstr = ""
-                        for a in range(len(i.targets)):
-                            if a == len(i.targets - 1):
-                                fullstr += f"http://{i.targets[a].servicename}:{i.targets[a].port}"
-                            else:
-                                fullstr += f"http://{i.targets[a].servicename}:{i.targets[a].port}, "
-                except:
-                    break #there's really no point in continuing past the end of the line, so this is in place to prevent it going *too* far
-        with open(f"fake-service-{i.id}.txt", "w") as fakeservicedoc:
-            fakeservicedoc.writelines(listoflines)
-        os.system(f"cp fake-service-{i.id}.txt fake-service-{i.id}.yaml")
-        os.system(f"minikube kubectl -- apply -f fake-service-{i.id}.yaml")
+            if "{name}" in j:
+                j = j.replace("{name}", i.servicename)
+            elif "{port}" in j:
+                j = j.replace("{port}", str(i.portnum))
+            elif "{upstreamuris}" in j:
+                fullstr = ""
+                for t in i.targets:
+                    for s in nodelist:
+                        if s.id == t:
+                            fullstr += "http://"+s.servicename+":"+str(s.portnum)+","
+                j = j.replace("{upstreamuris}", fullstr[:-1])
+            modifiedLines.append(j)
+        with open("output_files/fake-service-%s.txt" % i.id, "w") as fakeservicedoc:
+            fakeservicedoc.writelines(modifiedLines)
+        os.system("cp output_files/fake-service-"+str(i.id)+".txt output_files/fake-service-"+str(i.id)+".yaml")
