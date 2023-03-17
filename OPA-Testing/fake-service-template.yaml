@@ -34,7 +34,7 @@ spec:
       terminationGracePeriodSeconds: 0
       serviceAccountName: # Modify this line with the service name
       containers:
-      - name: # Modify this line with the service name
+      - name: {name} # Modify this line with the service name
         image: nicholasjackson/fake-service:v0.24.2
         imagePullPolicy: IfNotPresent
         env:
