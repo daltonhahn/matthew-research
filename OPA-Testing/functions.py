@@ -7,8 +7,9 @@ import getopt
 import shutil
 
 def createRandomNodeGraph(numnodes:int):
-    #G = nx.binomial_graph(numnodes, .05, directed=True)
-    G = nx.fast_gnp_random_graph(numnodes, .05, directed=True)
+    #G = nx.binomial_graph(numnodes, .05, directed=True) try one
+    #G = nx.fast_gnp_random_graph(numnodes, .05, directed=True) try two
+    G = nx.random_tree(numnodes)
     return G
 
 def printGraph(G, numnodes): #look into changing this into graphtools
