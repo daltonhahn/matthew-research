@@ -8,5 +8,5 @@ def main():
     jsondict = f.getjson(graph)
     nodelist = f.sortjson(jsondict)
     f.uploadmicroserviceshells(nodelist)
-
+    f.modifypolicytemplate(nodelist)
 main()

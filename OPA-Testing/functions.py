@@ -6,6 +6,8 @@ import os
 import getopt   
 import shutil
 
+#The following functions are general functions
+
 def createRandomNodeGraph(numnodes:int):
     #G = nx.binomial_graph(numnodes, .05, directed=True) try one
     #G = nx.fast_gnp_random_graph(numnodes, .05, directed=True) try two
@@ -91,6 +93,7 @@ def getjson(graph):
     data1 = nx.node_link_data(graph)
     s1 = json.dumps(data1) #this creates the JSON serial
     #print(s1)
+    os.system("rm output_files/*")
     f = open("output_files/graph.json", "w")
     f.write(s1)
     return s1
@@ -130,6 +133,7 @@ def sortjson(jsondict):
                     j.addTarget(i["target"])
         return nodelist
 
+#The following functions are meant for use with fake-service-tempalte.yaml
 
 def uploadmicroserviceshells(nodelist):
     for i in nodelist:
@@ -156,3 +160,38 @@ def uploadmicroserviceshells(nodelist):
         with open("output_files/fake-service-%s.txt" % i.id, "w") as fakeservicedoc:
             fakeservicedoc.writelines(modifiedLines)
         os.system("cp output_files/fake-service-"+str(i.id)+".txt output_files/fake-service-"+str(i.id)+".yaml")
+
+#The following functions are meant for use with policy-template.rego
+
+def modifypolicytemplate(nodelist):
+    os.system("cp policy-template.rego output_files/policy.txt")
+    listoflines = []
+    with open("output_files/policy.txt", "r") as policy:
+        listoflines = policy.readlines()
+    #modifying the policy template will require two seperate processes - one to do the token map and one to do the paths. both require inserting into the list of lines instead of creating a seperate list.
+    #this is the paths process
+    
+    #this is the token process
+    count = 0
+    for i in listoflines:
+        count += 1
+        if "{\"sName\": \"{name}\", \"tokVal\": \"{token}\"}," in i:
+            break
+    print(count)
+    for i in nodelist:
+        if count - 25 == len(nodelist):
+            tempstr = "        {\"sName\": \"{name}\", \"tokVal\": \"{token}\"}"
+            tempstr = tempstr.replace("{name}", i.servicename)
+            tempstr = tempstr.replace("{token}", f"token{i.id}")
+            listoflines.insert(count, tempstr)
+            count += 1
+        else:
+            tempstr = "        {\"sName\": \"{name}\", \"tokVal\": \"{token}\"},\n"
+            tempstr = tempstr.replace("{name}", i.servicename)
+            tempstr = tempstr.replace("{token}", f"token{i.id}")
+            listoflines.insert(count, tempstr)
+            count += 1
+    #post process
+    with open("output_files/policy.txt", "w") as policy:
+        policy.writelines(listoflines)
+
