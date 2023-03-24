@@ -11,7 +11,8 @@ import shutil
 def createRandomNodeGraph(numnodes:int):
     #G = nx.binomial_graph(numnodes, .05, directed=True) try one
     #G = nx.fast_gnp_random_graph(numnodes, .05, directed=True) try two
-    G = nx.random_tree(numnodes)
+    #G = nx.random_tree(numnodes) try three - do not repeat
+    G = nx.binomial_tree(numnodes)
     return G
 
 def printGraph(G, numnodes): #look into changing this into graphtools
@@ -163,6 +164,17 @@ def uploadmicroserviceshells(nodelist):
 
 #The following functions are meant for use with policy-template.rego
 
+def path_recursive(nodelist, currentid, currentpath):
+    currentpath += nodelist[currentid]
+    if len(nodelist[currentid].targets) == 0:
+        return [currentpath]
+    else:
+        temp = []
+        for i in nodelist[currentid].targets:
+            temp += path_recursive(nodelist, int(i), currentpath)
+        return temp
+
+
 def modifypolicytemplate(nodelist):
     os.system("cp policy-template.rego output_files/policy.txt")
     listoflines = []
@@ -170,7 +182,24 @@ def modifypolicytemplate(nodelist):
         listoflines = policy.readlines()
     #modifying the policy template will require two seperate processes - one to do the token map and one to do the paths. both require inserting into the list of lines instead of creating a seperate list.
     #this is the paths process
-    
+    pathlist = path_recursive(nodelist, 0, "")
+    count = 0
+    for i in listoflines:
+        count += 1
+        if "{paths}" in i:
+            break
+    print(count)
+    for i in pathlist:
+        if count - 16 == len(pathlist): #checking for last path in list
+            tempstr = "		\"{path}\""
+            tempstr = tempstr.replace("{path}", i)
+            listoflines.insert(count, tempstr)
+            count += 1
+        else:
+            empstr = "		\"{path}\",\n"
+            tempstr = tempstr.replace("{path}", i)
+            listoflines.insert(count, tempstr)
+            count += 1
     #this is the token process
     count = 0
     for i in listoflines:
@@ -179,7 +208,7 @@ def modifypolicytemplate(nodelist):
             break
     print(count)
     for i in nodelist:
-        if count - 25 == len(nodelist):
+        if count - 25 == len(nodelist): #checking for last node in list
             tempstr = "        {\"sName\": \"{name}\", \"tokVal\": \"{token}\"}"
             tempstr = tempstr.replace("{name}", i.servicename)
             tempstr = tempstr.replace("{token}", f"token{i.id}")
@@ -194,4 +223,5 @@ def modifypolicytemplate(nodelist):
     #post process
     with open("output_files/policy.txt", "w") as policy:
         policy.writelines(listoflines)
-
+    os.system("cp output_files/policy.txt output_files/policy.rego")
+    return
