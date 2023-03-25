@@ -161,11 +161,16 @@ def uploadmicroserviceshells(nodelist):
         with open("output_files/fake-service-%s.txt" % i.id, "w") as fakeservicedoc:
             fakeservicedoc.writelines(modifiedLines)
         os.system("cp output_files/fake-service-"+str(i.id)+".txt output_files/fake-service-"+str(i.id)+".yaml")
+        os.system("rm output_files/fake-service-"+str(i.id)+".txt")
 
 #The following functions are meant for use with policy-template.rego
 
 def path_recursive(nodelist, currentid, currentpath):
-    currentpath += nodelist[currentid]
+
+    if len(currentpath) == 0:
+        currentpath += f"{nodelist[currentid].servicename}"
+    else: 
+        currentpath += f",{nodelist[currentid].servicename}" #fix the print issues with this
     if len(nodelist[currentid].targets) == 0:
         return [currentpath]
     else:
@@ -193,10 +198,10 @@ def modifypolicytemplate(nodelist):
         if count - 16 == len(pathlist): #checking for last path in list
             tempstr = "		\"{path}\""
             tempstr = tempstr.replace("{path}", i)
-            listoflines.insert(count, tempstr)
+            listoflines.insert(count, tempstr[0:len(tempstr-2)])
             count += 1
         else:
-            empstr = "		\"{path}\",\n"
+            tempstr = "		\"{path}\",\n"
             tempstr = tempstr.replace("{path}", i)
             listoflines.insert(count, tempstr)
             count += 1
@@ -206,9 +211,10 @@ def modifypolicytemplate(nodelist):
         count += 1
         if "{\"sName\": \"{name}\", \"tokVal\": \"{token}\"}," in i:
             break
+    gap = count
     print(count)
     for i in nodelist:
-        if count - 25 == len(nodelist): #checking for last node in list
+        if count - gap == len(nodelist): #checking for last node in list
             tempstr = "        {\"sName\": \"{name}\", \"tokVal\": \"{token}\"}"
             tempstr = tempstr.replace("{name}", i.servicename)
             tempstr = tempstr.replace("{token}", f"token{i.id}")
@@ -224,4 +230,14 @@ def modifypolicytemplate(nodelist):
     with open("output_files/policy.txt", "w") as policy:
         policy.writelines(listoflines)
     os.system("cp output_files/policy.txt output_files/policy.rego")
+    os.system("rm output_files/policy.txt")
     return
+
+#the following functions are meant to be used with envFilter-template.yaml
+
+def createenvFilter(nodelist):
+    
+
+#to do this week
+#   check in overleaf
+#   tackle envFilter-template - this will mainly be recycling code from upload microservice shells
