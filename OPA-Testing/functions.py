@@ -236,7 +236,21 @@ def modifypolicytemplate(nodelist):
 #the following functions are meant to be used with envFilter-template.yaml
 
 def createenvFilter(nodelist):
-    
+    for i in nodelist:
+        os.system("cp envFilter-template.yaml output_files/envFilter-"+str(i.id)+".txt")#note that this command only works in linux - if used for windows, change the cp to copy
+        listoflines = []
+        with open("output_files/envFilter-%s.txt" % i.id, "r") as fakeservicedoc:
+            listoflines = fakeservicedoc.readlines()
+        modifiedLines = list()
+        for j in listoflines:
+            if "{name}" in j:
+                j = j.replace("{name}", i.servicename)
+            modifiedLines.append(j)
+        with open("output_files/fake-service-%s.txt" % i.id, "w") as fakeservicedoc:
+            fakeservicedoc.writelines(modifiedLines)
+        os.system("cp output_files/envFilter-"+str(i.id)+".txt output_files/envFilter-"+str(i.id)+".yaml")
+        os.system("rm output_files/envFilter-"+str(i.id)+".txt")
+
 
 #to do this week
 #   check in overleaf

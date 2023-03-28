@@ -8,5 +8,5 @@ def main():
     nodelist = f.sortjson(jsondict)
     f.uploadmicroserviceshells(nodelist)
     f.modifypolicytemplate(nodelist)
-    
+    f.createenvFilter(nodelist)
 main()
