@@ -142,6 +142,7 @@ def sortjson(jsondict):
 def uploadmicroserviceshells(nodelist):
     for i in nodelist:
         print(i)
+    listofservices = []
     for i in nodelist:
         os.system("cp fake-service-template.yaml output_files/fake-service-"+str(i.id)+".txt")#note that this command only works in linux - if used for windows, change the cp to copy
         listoflines = []
@@ -165,6 +166,8 @@ def uploadmicroserviceshells(nodelist):
             fakeservicedoc.writelines(modifiedLines)
         os.system("cp output_files/fake-service-"+str(i.id)+".txt output_files/fake-service-"+str(i.id)+".yaml")
         # os.remove("output_files/fake-service-%s.txt" % i.id)
+        listofservices.append("fake-service-"+str(i.id)+".yaml")
+    return listofservices
 
 #The following functions are meant for use with policy-template.rego
 
@@ -236,13 +239,14 @@ def modifypolicytemplate(nodelist):
             listoflines.remove(i)
     with open("output_files/policy.txt", "w") as policy:
         policy.writelines(listoflines)
-    os.system("cp output_files/policy.txt output_files/policy.rego")
+    os.system("cp output_files/policy.txt output_files/allow-policy.rego")
     os.system("rm output_files/policy.txt")
     return
 
 #the following functions are meant to be used with envFilter-template.yaml
 
 def createenvFilter(nodelist):
+    listoffilters = []
     for i in nodelist:
         os.system("cp envFilter-template.yaml output_files/envFilter-"+str(i.id)+".txt")#note that this command only works in linux - if used for windows, change the cp to copy
         listoflines = []
@@ -259,4 +263,19 @@ def createenvFilter(nodelist):
             fakeservicedoc.writelines(modifiedLines)
         os.system("cp output_files/envFilter-"+str(i.id)+".txt output_files/envFilter-"+str(i.id)+".yaml")
         os.system("rm output_files/envFilter-"+str(i.id)+".txt")
+        listoffilters.append("envFilter-"+str(i.id)+".yaml")
+    return listoffilters
 
+def createBashScript(servicenames, filternames):
+    listoflines = ["#/bin/bash"]
+    listoflines.append("kubectl create secret generic opa-policy --from-file=allow-policy.rego\n")
+    listoflines.append("kubectl apply -f ../opa.yaml\n")
+    listoflines.append("kubectl ext-service.yaml\n")
+    for i in servicenames:
+        listoflines.append(f"kubectl apply -f {i}\n")
+    listoflines.append("kubectl apply -f etcd.yaml\n")
+    listoflines.append("kubectl apply -f opaAuthz.yaml\n")
+    for i in filternames:
+        listoflines.append(f"kubectl apply -f {i}\n")
+    with open("output_files/depFake-OPA.sh", "w") as f:
+        f.writelines(listoflines)
