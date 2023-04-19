@@ -267,10 +267,9 @@ def createenvFilter(nodelist):
     return listoffilters
 
 def createBashScript(servicenames, filternames):
-    listoflines = ["#/bin/bash"]
+    listoflines = ["#/bin/bash\n\n"]
     listoflines.append("kubectl create secret generic opa-policy --from-file=allow-policy.rego\n")
     listoflines.append("kubectl apply -f ../opa.yaml\n")
-    listoflines.append("kubectl ext-service.yaml\n")
     for i in servicenames:
         listoflines.append(f"kubectl apply -f {i}\n")
     listoflines.append("kubectl apply -f etcd.yaml\n")
