@@ -247,23 +247,43 @@ def modifypolicytemplate(nodelist):
 
 def createenvFilter(nodelist):
     listoffilters = []
+    specialCase = True
     for i in nodelist:
-        os.system("cp envFilter-template.yaml output_files/envFilter-"+str(i.id)+".txt")#note that this command only works in linux - if used for windows, change the cp to copy
-        listoflines = []
-        with open("output_files/envFilter-%s.txt" % i.id, "r") as fakeservicedoc:
-            listoflines = fakeservicedoc.readlines()
-        modifiedLines = list()
-        for j in listoflines:
-            if "{name}" in j:
-                j = j.replace("{name}", i.servicename)
-            if "{token}" in j:
-                j = j.replace("{token}", f"token{i.id}")
-            modifiedLines.append(j)
-        with open("output_files/envFilter-%s.txt" % i.id, "w") as fakeservicedoc:
-            fakeservicedoc.writelines(modifiedLines)
-        os.system("cp output_files/envFilter-"+str(i.id)+".txt output_files/envFilter-"+str(i.id)+".yaml")
-        os.system("rm output_files/envFilter-"+str(i.id)+".txt")
-        listoffilters.append("envFilter-"+str(i.id)+".yaml")
+        if specialCase:
+            specialCase = False
+            os.system("cp envFilterSpecialCase.yaml output_files/envFilter-"+str(i.id)+".txt")#note that this command only works in linux - if used for windows, change the cp to copy
+            listoflines = []
+            with open("output_files/envFilter-%s.txt" % i.id, "r") as fakeservicedoc:
+                listoflines = fakeservicedoc.readlines()
+            modifiedLines = list()
+            for j in listoflines:
+                if "{name}" in j:
+                    j = j.replace("{name}", i.servicename)
+                if "{token}" in j:
+                    j = j.replace("{token}", f"token{i.id}")
+                modifiedLines.append(j)
+            with open("output_files/envFilter-%s.txt" % i.id, "w") as fakeservicedoc:
+                fakeservicedoc.writelines(modifiedLines)
+            os.system("cp output_files/envFilter-"+str(i.id)+".txt output_files/envFilter-"+str(i.id)+".yaml")
+            os.system("rm output_files/envFilter-"+str(i.id)+".txt")
+            listoffilters.append("envFilter-"+str(i.id)+".yaml")
+        else:
+            os.system("cp envFilter-template.yaml output_files/envFilter-"+str(i.id)+".txt")#note that this command only works in linux - if used for windows, change the cp to copy
+            listoflines = []
+            with open("output_files/envFilter-%s.txt" % i.id, "r") as fakeservicedoc:
+                listoflines = fakeservicedoc.readlines()
+            modifiedLines = list()
+            for j in listoflines:
+                if "{name}" in j:
+                    j = j.replace("{name}", i.servicename)
+                if "{token}" in j:
+                    j = j.replace("{token}", f"token{i.id}")
+                modifiedLines.append(j)
+            with open("output_files/envFilter-%s.txt" % i.id, "w") as fakeservicedoc:
+                fakeservicedoc.writelines(modifiedLines)
+            os.system("cp output_files/envFilter-"+str(i.id)+".txt output_files/envFilter-"+str(i.id)+".yaml")
+            os.system("rm output_files/envFilter-"+str(i.id)+".txt")
+            listoffilters.append("envFilter-"+str(i.id)+".yaml")
     return listoffilters
 
 def createBashScript(servicenames, filternames):

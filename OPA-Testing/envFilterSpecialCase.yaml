@@ -1,0 +1,25 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: {name}-headers-append # Modify this line with a unique name for the target service
+  namespace: default
+spec:
+  configPatches:
+  - applyTo: ROUTE_CONFIGURATION
+    match:
+      context: SIDECAR_OUTBOUND
+    patch:
+      operation: MERGE
+      value:
+        request_headers_to_add:
+          - header:
+              key: "tokens"
+              value: "{token}" # Modify this line with the token for selected service
+            append: true
+          - header:
+              key: "sources"
+              value: "{name}" # Modify this line with the service name
+            append: true
+  workloadSelector:
+    labels:
+      app: {name} # Modify this line with the service name
