@@ -30,10 +30,10 @@ spec:
               tokens = request_handle:headers():get("tokens") or ""
               request_handle:logWarn("= RECVD: srcs: "..sources.." tokens: "..tokens.." =")
 
-              local bSources = enc("sources_{name}")
+              local bSources = enc("{name}")
               local bSrcs = enc(sources)
 
-              local bTokens = enc("tokens_{name}")
+              local bTokens = enc("{name}")
               local bToks = enc(tokens)
 
               local headers, body = request_handle:httpCall("outbound|2379||etcd.default.svc.cluster.local", {
@@ -114,8 +114,8 @@ spec:
               sources = request_handle:headers():get("sources") or ""
               tokens = request_handle:headers():get("tokens") or ""
 
-              local bSources = enc("sources_{name}")
-              local bTokens = enc("tokens_{name}")
+              local bSources = enc("{name}")
+              local bTokens = enc("{name}")
 
               local headers, body = request_handle:httpCall("outbound|2379||etcd.default.svc.cluster.local", {
                 [":method"] = "POST",

@@ -5,6 +5,7 @@ import sys
 import os
 import getopt   
 import shutil
+import matplotlib.pyplot as plt
 
 #The following functions are general functions
 
@@ -13,6 +14,8 @@ def createRandomNodeGraph(numnodes:int):
     #G = nx.fast_gnp_random_graph(numnodes, .05, directed=True) try two
     #G = nx.random_tree(numnodes) try three - do not repeat
     G = nx.binomial_tree(numnodes)
+    nx.draw(G)
+    plt.show()
     return G
 
 def printGraph(G, numnodes): #look into changing this into graphtools
@@ -161,7 +164,7 @@ def uploadmicroserviceshells(nodelist):
         with open("output_files/fake-service-%s.txt" % i.id, "w") as fakeservicedoc:
             fakeservicedoc.writelines(modifiedLines)
         os.system("cp output_files/fake-service-"+str(i.id)+".txt output_files/fake-service-"+str(i.id)+".yaml")
-        os.system("rm output_files/fake-service-"+str(i.id)+".txt")
+        # os.remove("output_files/fake-service-%s.txt" % i.id)
 
 #The following functions are meant for use with policy-template.rego
 
@@ -174,7 +177,7 @@ def path_recursive(nodelist, currentid, currentpath):
     if len(nodelist[currentid].targets) == 0:
         return [currentpath]
     else:
-        temp = []
+        temp = [currentpath]
         for i in nodelist[currentid].targets:
             temp += path_recursive(nodelist, int(i), currentpath)
         return temp
@@ -190,9 +193,9 @@ def modifypolicytemplate(nodelist):
     pathlist = path_recursive(nodelist, 0, "")
     count = 0
     for i in listoflines:
-        count += 1
         if "{paths}" in i:
             break
+        count += 1
     print(count)
     for i in pathlist:
         if count - 16 == len(pathlist): #checking for last path in list
@@ -227,6 +230,10 @@ def modifypolicytemplate(nodelist):
             listoflines.insert(count, tempstr)
             count += 1
     #post process
+    count = 0
+    for i in listoflines:
+        if "{paths}" in i or '{"sName": "{name}", "tokVal": "{token}"}' in i:
+            listoflines.remove(i)
     with open("output_files/policy.txt", "w") as policy:
         policy.writelines(listoflines)
     os.system("cp output_files/policy.txt output_files/policy.rego")
@@ -245,13 +252,11 @@ def createenvFilter(nodelist):
         for j in listoflines:
             if "{name}" in j:
                 j = j.replace("{name}", i.servicename)
+            if "{token}" in j:
+                j = j.replace("{token}", f"token{i.id}")
             modifiedLines.append(j)
-        with open("output_files/fake-service-%s.txt" % i.id, "w") as fakeservicedoc:
+        with open("output_files/envFilter-%s.txt" % i.id, "w") as fakeservicedoc:
             fakeservicedoc.writelines(modifiedLines)
         os.system("cp output_files/envFilter-"+str(i.id)+".txt output_files/envFilter-"+str(i.id)+".yaml")
         os.system("rm output_files/envFilter-"+str(i.id)+".txt")
 
-
-#to do this week
-#   check in overleaf
-#   tackle envFilter-template - this will mainly be recycling code from upload microservice shells
