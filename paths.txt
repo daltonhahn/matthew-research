@@ -1,0 +1,105 @@
+**SERVICENAME**
+
+      Inbounds
+            line num & listener
+      Outbounds
+            Service & function
+
+(inbounds were taken from socialNetwork/config/service-config.json)
+
+ComposePostService (ComposePostHandler.h)
+	Inbounds
+		/compose-post-redis, port 9090
+		/compose/post-service, port 9090
+	Outbounds
+		HomeTimelineService: WriteHomeTimeline()
+		MediaService: ComposeMedia()
+		SocialGraphService: GetFollowers()
+		PostStorageService: StorePosts()
+		TextService: ComposeText()
+		UniqueIdService: ComposeUniqueId()
+		UserService: ComposeCreatorWithUserId() 
+		UserTimelineService: WriteUserTimeline()
+HomeTimelineService (HometimelineHandler.h)
+      Inbounds
+		/home-timeline-redis, port 6379
+		/write-home-timeline-rabbitmq, port 5672
+		/home-timeline-service, port 9090
+      Outbounds
+            PostStorageService: ReadPosts() 
+            SocialGraphService: GetFollowers()
+
+MediaService (MediaHandler.h)
+	Inbounds
+		/media-service, port 9090
+	Outbounds
+		None. Goes to storage.
+            
+PostStorageService (PostStorageHandler.h)
+      Inbounds
+		/post-storage-service, port 9090
+		/post-storage-memcached, port 11211
+		/post-storage-mongodb, port 27017
+      Outbounds
+            No microservices. Goes to storage
+
+SocialGraphService (SocialGraphHandler.h)
+	Inbounds
+		/social-graph-mongodb, port 27017
+		/social-graph-service, port 9090
+		/social-graph-redis, port 6379
+	Outbounds
+		UserService: GetUserId()
+
+TextService (TextHandler.h)
+	Inbounds
+		/text-service, port 9090
+	Outbounds
+		URlShortenService: ComposeUrls()
+		UserMentionService ComposeUserMentions()
+
+UniqueIdService (UniqueIdHandler.h)(social_network_types)
+	Inbounds
+		/unique-id-service, port 9090
+	Outbounds
+		No microservices. 
+
+UrlShortenService (UrlShortenHandler.h) (social_network_types)
+	Inbounds
+		/url-shortened-memcached, port 11211
+		/url-shorten-mongodb, port 27017
+		/url-shorten-service, port 9090
+	Outbounds
+		No microservices.
+
+UserMentionService (UserMentionHandler.h) (social_network_types)
+	Inbounds
+		/user-mention-service, port 9090
+	Outbounds
+		No microservices.
+
+UserService (UserHandler.h) (social_network_types)
+	Inbounds
+		/user-service, port 9090
+	Outbounds
+		SocialGraphService: Although it does feed into SocialGraphService via the pool, it doesn't appear to use any functions.
+
+UserTimelineService (UserTimelineHandler.h) (social_network_types)
+	Inbounds
+		/user-timeline-redis, port 6379
+		/user-timeline-mongodb, port 27017
+		/user-timeline-service, port 9090
+	Outbounds
+		PostStorageService: ReadPosts()
+
+WriteHomeTimeline (WriteHomeTimelineService.cpp) (social_network_types)
+	Inbounds
+		/write-home-timeline-service, port 9090
+		/write-home-timeline-rabbitmq, port 5672
+	Outbounds
+		No microservices.
+
+
+
+
+
